@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { SignUp } from '@clerk/clerk-react';
+import { useNavigate } from 'react-router-dom';
 
 const Registration = () => {
+    const navigate = useNavigate();
     const [currentStep, setCurrentStep] = useState(1);
     const [formData, setFormData] = useState({
         // Personal Information
@@ -113,7 +114,8 @@ const Registration = () => {
         if (validateStep(currentStep)) {
             // Handle form submission
             console.log('Form submitted:', formData);
-            alert('Registration successful! Please check your email for verification.');
+            alert('Registration successful! Welcome to AI Retirement Planner');
+            navigate('/dashboard');
         }
     };
 
@@ -169,34 +171,9 @@ const Registration = () => {
                             </div>
                         </div>
 
-                        {/* Google Registration Option */}
-                        <div className="flex justify-center ">
-                            <div className="text-center mb-4">
-                                {/* <p className="text-gray-600 text-sm">Or continue with</p> */}
-                            </div>
-                            <SignUp
-                                appearance={{
-                                    elements: {
-                                        formButtonPrimary: 'hidden',
-                                        card: 'shadow-none border-0',
-                                        headerTitle: 'hidden',
-                                        headerSubtitle: 'hidden',
-                                        socialButtonsBlockButton: 'w-full mb-4 px-4 py-3 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 flex items-center justify-center text-gray-700 font-medium',
-                                        socialButtonsBlockButtonText: 'flex items-center text-sm font-medium',
-                                        socialButtonsProviderIcon__google: 'w-5 h-5 mr-3',
-                                        socialButtonsBlockButtonArrow: 'hidden',
-                                        formFieldInput: 'hidden',
-                                        formFieldLabel: 'hidden',
-                                        formFieldRow: 'hidden',
-                                        footerActionText: 'hidden',
-                                        footerActionLink: 'hidden'
-                                    }
-                                }}
-                                redirectUrl="/dashboard"
-                            />
-                        </div>
-
                         
+
+
 
                         {/* Custom Registration Form */}
                         <form onSubmit={handleSubmit} className={`transition-all duration-300 ${isAnimating ? 'opacity-0 transform translate-x-4' : 'opacity-100 transform translate-x-0'}`}>

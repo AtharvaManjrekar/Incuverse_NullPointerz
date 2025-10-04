@@ -1,14 +1,19 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useUser, useClerk } from '@clerk/clerk-react';
 
 const Navbar = () => {
-    const { user, isSignedIn } = useUser();
-    const { signOut } = useClerk();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [userName, setUserName] = useState('User');
     const location = useLocation();
 
     const isActive = (path) => location.pathname === path;
+
+    const handleSignOut = () => {
+        setIsLoggedIn(false);
+        setUserName('User');
+        // In a real app, you would clear tokens, etc.
+    };
 
     return (
         <nav className="bg-white shadow-soft border-b border-gray-100 sticky top-0 z-50">
@@ -30,7 +35,7 @@ const Navbar = () => {
                         >
                             Home
                         </Link>
-                        {isSignedIn ? (
+                        {isLoggedIn ? (
                             <>
                                 <Link
                                     to="/dashboard"
@@ -50,11 +55,11 @@ const Navbar = () => {
                                             <i className="fas fa-user text-primary-600 text-sm"></i>
                                         </div>
                                         <span className="text-sm font-medium text-gray-700">
-                                            {user?.firstName || 'User'}
+                                            {userName}
                                         </span>
                                     </div>
                                     <button
-                                        onClick={() => signOut()}
+                                        onClick={handleSignOut}
                                         className="text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium"
                                     >
                                         <i className="fas fa-sign-out-alt mr-1"></i>
@@ -103,7 +108,7 @@ const Navbar = () => {
                             >
                                 Home
                             </Link>
-                            {isSignedIn ? (
+                            {isLoggedIn ? (
                                 <>
                                     <Link
                                         to="/dashboard"
@@ -127,12 +132,12 @@ const Navbar = () => {
                                                 <i className="fas fa-user text-primary-600 text-sm"></i>
                                             </div>
                                             <span className="text-sm font-medium text-gray-700">
-                                                {user?.firstName || 'User'}
+                                                {userName}
                                             </span>
                                         </div>
                                         <button
                                             onClick={() => {
-                                                signOut();
+                                                handleSignOut();
                                                 setIsMenuOpen(false);
                                             }}
                                             className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-50"

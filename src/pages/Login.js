@@ -1,7 +1,64 @@
-import React from 'react';
-import { SignIn } from '@clerk/clerk-react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Email is invalid';
+    }
+
+    if (!formData.password.trim()) {
+      newErrors.password = 'Password is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (validateForm()) {
+      setIsLoading(true);
+
+      // Simulate login process
+      setTimeout(() => {
+        console.log('Login attempt:', formData);
+        setIsLoading(false);
+        // Simulate successful login
+        alert('Login successful! Welcome to AI Retirement Planner');
+        navigate('/dashboard');
+      }, 1500);
+    }
+  };
+
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 min-h-screen flex flex-col justify-center">
       <div className="card w-full p-6 shadow-lg border rounded-lg">
@@ -13,34 +70,51 @@ const Login = () => {
           <p className="text-gray-600">Sign in to your AI Retirement Planner account</p>
         </div>
 
-        <div className='flex justify-center'>
-          <SignIn
-            appearance={{
-              elements: {
-                formButtonPrimary: 'btn btn-primary w-full',
-                card: 'shadow-none border-0 w-full',
-                headerTitle: 'hidden',
-                headerSubtitle: 'hidden',
-                socialButtonsBlockButton: 'w-full mb-4 px-4 py-3 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 flex items-center justify-center text-gray-700 font-medium',
-                socialButtonsBlockButtonText: 'flex items-center text-sm font-medium',
-                formFieldInput: 'form-input',
-                footerActionLink: 'text-primary-600 hover:text-primary-700 font-medium',
-                socialButtonsProviderIcon__google: 'w-5 h-5 mr-3',
-                socialButtonsBlockButtonArrow: 'hidden',
-                formFieldLabel: 'form-label',
-                formFieldRow: 'mb-4',
-                formFieldInputShowPasswordButton: 'text-gray-400 hover:text-gray-600',
-                identityPreviewText: 'text-sm text-gray-600',
-                formFieldSuccessText: 'text-green-600 text-sm',
-                formFieldErrorText: 'text-red-500 text-sm',
-                footerActionText: 'text-sm text-gray-600',
-                footerActionLink: 'text-primary-600 hover:text-primary-700 font-medium text-sm'
-              }
-            }}
-            redirectUrl="/dashboard"
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="form-label">Email Address</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className={`form-input ${errors.email ? 'border-red-500' : ''}`}
+              placeholder="Enter your email address"
+            />
+            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+          </div>
 
-          />
-        </div>
+          <div>
+            <label className="form-label">Password</label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              className={`form-input ${errors.password ? 'border-red-500' : ''}`}
+              placeholder="Enter your password"
+            />
+            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="btn btn-primary w-full"
+          >
+            {isLoading ? (
+              <>
+                <i className="fas fa-spinner fa-spin mr-2"></i>
+                Signing In...
+              </>
+            ) : (
+              <>
+                <i className="fas fa-sign-in-alt mr-2"></i>
+                Sign In
+              </>
+            )}
+          </button>
+        </form>
 
         {/* Features */}
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">

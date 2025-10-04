@@ -3,7 +3,6 @@
     "version": "1.0.0",
     "private": true,
     "dependencies": {
-        "@clerk/clerk-react": "^4.32.5",
         "@fortawesome/fontawesome-free": "^7.1.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",

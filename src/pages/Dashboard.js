@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useUser } from '@clerk/clerk-react';
 
 const Dashboard = () => {
-    const { user } = useUser();
     const [activeTab, setActiveTab] = useState('overview');
+    const [userName, setUserName] = useState('John Doe');
+    const [userEmail, setUserEmail] = useState('john.doe@example.com');
 
     // Mock data for user's retirement planning history
     const planningHistory = [
@@ -106,7 +106,7 @@ const Dashboard = () => {
                     <div className="flex items-center justify-between">
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                                Welcome back, {user?.firstName || 'User'}!
+                                Welcome back, {userName.split(' ')[0]}!
                             </h1>
                             <p className="text-gray-600">Your retirement planning dashboard</p>
                         </div>
@@ -309,8 +309,8 @@ const Dashboard = () => {
                                         <i className="fas fa-user text-primary-600 text-2xl"></i>
                                     </div>
                                     <div>
-                                        <h4 className="font-semibold text-gray-900">{user?.fullName || 'User Name'}</h4>
-                                        <p className="text-gray-600">{user?.primaryEmailAddress?.emailAddress || 'user@example.com'}</p>
+                                        <h4 className="font-semibold text-gray-900">{userName}</h4>
+                                        <p className="text-gray-600">{userEmail}</p>
                                         <p className="text-sm text-gray-500">Member since {new Date().getFullYear()}</p>
                                     </div>
                                 </div>

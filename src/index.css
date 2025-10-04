@@ -6,7 +6,7 @@
   html {
     font-family: 'Inter', system-ui, sans-serif;
   }
-  
+
   body {
     @apply bg-gray-50 text-gray-900;
   }
@@ -16,43 +16,43 @@
   .btn {
     @apply px-6 py-3 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
   }
-  
+
   .btn-primary {
     @apply bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500 shadow-soft;
   }
-  
+
   .btn-secondary {
     @apply bg-white text-primary-600 border border-primary-200 hover:bg-primary-50 focus:ring-primary-500 shadow-soft;
   }
-  
+
   .btn-outline {
     @apply bg-transparent text-primary-600 border border-primary-300 hover:bg-primary-50 focus:ring-primary-500;
   }
-  
+
   .form-input {
     @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200;
   }
-  
+
   .form-label {
     @apply block text-sm font-medium text-gray-700 mb-2;
   }
-  
+
   .card {
     @apply bg-white rounded-xl shadow-soft border border-gray-100;
   }
-  
+
   .card-header {
     @apply px-6 py-4 border-b border-gray-100;
   }
-  
+
   .card-body {
     @apply px-6 py-4;
   }
-  
+
   .nav-link {
     @apply text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium;
   }
-  
+
   .nav-link.active {
     @apply text-primary-600;
   }
@@ -64,6 +64,7 @@
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -71,9 +72,12 @@
 }
 
 @keyframes gradientX {
-  0%, 100% {
+
+  0%,
+  100% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
@@ -83,6 +87,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -93,6 +98,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -100,18 +106,24 @@
 }
 
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-10px);
   }
 }
 
 @keyframes pulseGlow {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
   }
+
   50% {
     box-shadow: 0 0 30px rgba(59, 130, 246, 0.6);
   }
@@ -205,4 +217,86 @@
 .scroll-reveal.revealed {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* Clerk Custom Styling */
+.cl-socialButtonsBlockButton {
+  @apply w-full mb-4 px-4 py-3 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 flex items-center justify-center text-gray-700 font-medium;
+}
+
+.cl-socialButtonsBlockButtonText {
+  @apply flex items-center text-sm font-medium;
+}
+
+.cl-socialButtonsProviderIcon__google {
+  @apply w-5 h-5 mr-3;
+}
+
+.cl-socialButtonsBlockButtonArrow {
+  @apply hidden;
+}
+
+.cl-formButtonPrimary {
+  @apply btn btn-primary w-full;
+}
+
+.cl-formFieldInput {
+  @apply form-input;
+}
+
+.cl-formFieldLabel {
+  @apply form-label;
+}
+
+.cl-formFieldRow {
+  @apply mb-4;
+}
+
+.cl-formFieldInputShowPasswordButton {
+  @apply text-gray-400 hover:text-gray-600;
+}
+
+.cl-identityPreviewText {
+  @apply text-sm text-gray-600;
+}
+
+.cl-formFieldSuccessText {
+  @apply text-green-600 text-sm;
+}
+
+.cl-formFieldErrorText {
+  @apply text-red-500 text-sm;
+}
+
+.cl-footerActionText {
+  @apply text-sm text-gray-600;
+}
+
+.cl-footerActionLink {
+  @apply text-primary-600 hover:text-primary-700 font-medium text-sm;
+}
+
+.cl-card {
+  @apply shadow-none border-0;
+}
+
+.cl-headerTitle {
+  @apply hidden;
+}
+
+.cl-headerSubtitle {
+  @apply hidden;
+}
+
+/* Additional Clerk styling fixes */
+.cl-socialButtonsBlockButton:hover {
+  @apply bg-gray-50 border-primary-300;
+}
+
+.cl-socialButtonsBlockButton:focus {
+  @apply ring-2 ring-primary-500 border-primary-500;
+}
+
+.cl-socialButtonsBlockButton:active {
+  @apply bg-gray-100;
 }

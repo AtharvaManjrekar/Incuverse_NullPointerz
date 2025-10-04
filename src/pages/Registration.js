@@ -1,25 +1,22 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { SignUp } from '@clerk/clerk-react';
 
 const Registration = () => {
     const [currentStep, setCurrentStep] = useState(1);
     const [formData, setFormData] = useState({
-        // Personal Data
-        name: '',
-        age: '',
+        // Personal Information
+        firstName: '',
+        lastName: '',
         email: '',
+        age: '',
         location: '',
         maritalStatus: '',
         dependents: '',
-        // Income Information
-        basicIncome: '',
-        additionalIncome: '',
-        monthlyExpenses: '',
-        // Security
+        // Income & Security
+        monthlyIncome: '',
         password: '',
         confirmPassword: ''
     });
-
     const [errors, setErrors] = useState({});
     const [isAnimating, setIsAnimating] = useState(false);
     const [isEmailVerified, setIsEmailVerified] = useState(false);
@@ -31,6 +28,7 @@ const Registration = () => {
             ...prev,
             [name]: value
         }));
+
         // Clear error when user starts typing
         if (errors[name]) {
             setErrors(prev => ({
@@ -38,25 +36,13 @@ const Registration = () => {
                 [name]: ''
             }));
         }
-        // Reset email verification if email changes
-        if (name === 'email' && isEmailVerified) {
-            setIsEmailVerified(false);
-        }
     };
 
     const handleEmailVerification = async () => {
-        if (!formData.email.trim()) {
+        if (!formData.email) {
             setErrors(prev => ({
                 ...prev,
-                email: 'Please enter an email address first'
-            }));
-            return;
-        }
-
-        if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            setErrors(prev => ({
-                ...prev,
-                email: 'Please enter a valid email address'
+                email: 'Email is required for verification'
             }));
             return;
         }
@@ -65,13 +51,12 @@ const Registration = () => {
 
         // Simulate email verification process
         setTimeout(() => {
-            setIsVerifying(false);
             setIsEmailVerified(true);
+            setIsVerifying(false);
             setErrors(prev => ({
                 ...prev,
                 email: ''
             }));
-            alert('Verification email sent! Please check your inbox and click the verification link.');
         }, 2000);
     };
 
@@ -79,39 +64,23 @@ const Registration = () => {
         const newErrors = {};
 
         if (step === 1) {
-            // Personal Data validation
-            if (!formData.name.trim()) newErrors.name = 'Name is required';
-            if (!formData.age || formData.age < 18 || formData.age > 100) {
-                newErrors.age = 'Please enter a valid age (18-100)';
-            }
+            if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
+            if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
             if (!formData.email.trim()) {
                 newErrors.email = 'Email is required';
             } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-                newErrors.email = 'Please enter a valid email address';
+                newErrors.email = 'Email is invalid';
             } else if (!isEmailVerified) {
-                newErrors.email = 'Please verify your email address first';
+                newErrors.email = 'Please verify your email first';
             }
+            if (!formData.age.trim()) newErrors.age = 'Age is required';
             if (!formData.location.trim()) newErrors.location = 'Location is required';
-            if (!formData.maritalStatus) newErrors.maritalStatus = 'Please select marital status';
-            if (!formData.dependents || formData.dependents < 0) {
-                newErrors.dependents = 'Please enter a valid number of dependents';
-            }
+            if (!formData.maritalStatus) newErrors.maritalStatus = 'Marital status is required';
+            if (!formData.dependents.trim()) newErrors.dependents = 'Number of dependents is required';
         } else if (step === 2) {
-            // Income Information validation
-            if (!formData.basicIncome || formData.basicIncome < 0) {
-                newErrors.basicIncome = 'Please enter a valid basic income amount';
-            }
-            if (formData.additionalIncome && formData.additionalIncome < 0) {
-                newErrors.additionalIncome = 'Please enter a valid additional income amount';
-            }
-            if (!formData.monthlyExpenses || formData.monthlyExpenses < 0) {
-                newErrors.monthlyExpenses = 'Please enter valid monthly expenses';
-            }
-            if (!formData.password) {
-                newErrors.password = 'Password is required';
-            } else if (formData.password.length < 8) {
-                newErrors.password = 'Password must be at least 8 characters long';
-            }
+            if (!formData.monthlyIncome.trim()) newErrors.monthlyIncome = 'Monthly income is required';
+            if (!formData.password.trim()) newErrors.password = 'Password is required';
+            if (formData.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
             if (formData.password !== formData.confirmPassword) {
                 newErrors.confirmPassword = 'Passwords do not match';
             }
@@ -141,7 +110,7 @@ const Registration = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (validateStep(2)) {
+        if (validateStep(currentStep)) {
             // Handle form submission
             console.log('Form submitted:', formData);
             alert('Registration successful! Please check your email for verification.');
@@ -150,15 +119,14 @@ const Registration = () => {
 
     const handleReset = () => {
         setFormData({
-            name: '',
-            age: '',
+            firstName: '',
+            lastName: '',
             email: '',
+            age: '',
             location: '',
             maritalStatus: '',
             dependents: '',
-            basicIncome: '',
-            additionalIncome: '',
-            monthlyExpenses: '',
+            monthlyIncome: '',
             password: '',
             confirmPassword: ''
         });
@@ -168,422 +136,320 @@ const Registration = () => {
         setIsVerifying(false);
     };
 
-    const steps = [
-        {
-            number: 1,
-            title: 'Personal Information',
-            description: 'Tell us about yourself',
-            icon: 'fa-user'
-        },
-        {
-            number: 2,
-            title: 'Income & Security',
-            description: 'Financial details and account setup',
-            icon: 'fa-wallet'
-        }
-    ];
-
     return (
-        <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-blue-50 py-12">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Header */}
-                <div className="text-center mb-8">
-                    <div className="w-20 h-20 bg-gradient-to-r from-primary-600 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse-glow">
-                        <i className="fas fa-user-plus text-white text-3xl"></i>
-                    </div>
-                    <h1 className="text-4xl font-bold text-gray-900 mb-2 animate-fade-in-up">Create Your Account</h1>
-                    <p className="text-xl text-gray-600 animate-fade-in-up animation-delay-200">
-                        Join our AI-powered retirement planning platform
-                    </p>
-                </div>
-
-                {/* Progress Steps */}
-                <div className="mb-8">
-                    <div className="flex items-center justify-center space-x-8">
-                        {steps.map((step, index) => (
-                            <div key={step.number} className="flex items-center">
-                                <div className={`flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all duration-300 ${currentStep >= step.number
-                                    ? 'bg-primary-600 border-primary-600 text-white'
-                                    : 'bg-white border-gray-300 text-gray-400'
-                                    }`}>
-                                    <i className={`fas ${step.icon} ${currentStep >= step.number ? 'text-white' : 'text-gray-400'}`}></i>
-                                </div>
-                                {index < steps.length - 1 && (
-                                    <div className={`w-16 h-1 mx-4 transition-all duration-300 ${currentStep > step.number ? 'bg-primary-600' : 'bg-gray-300'
-                                        }`}></div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                    <div className="text-center mt-4">
-                        <h2 className="text-lg font-semibold text-gray-900">
-                            {steps[currentStep - 1].title}
-                        </h2>
-                        <p className="text-gray-600">{steps[currentStep - 1].description}</p>
-                    </div>
-                </div>
-
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-2xl mx-auto">
                 <div className="card">
+                    <div className="card-header">
+                        <div className="text-center">
+                            <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
+                            <p className="text-gray-600">Join our AI-powered retirement planning platform</p>
+                        </div>
+                    </div>
+
                     <div className="card-body">
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className={`transition-all duration-500 ${isAnimating ? 'opacity-0 transform translate-x-4' : 'opacity-100 transform translate-x-0'}`}>
+                        {/* Progress Indicator */}
+                        <div className="mb-8">
+                            <div className="flex items-center justify-center space-x-4">
+                                <div className={`flex items-center ${currentStep >= 1 ? 'text-primary-600' : 'text-gray-400'}`}>
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep >= 1 ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-500'
+                                        }`}>
+                                        1
+                                    </div>
+                                    <span className="ml-2 text-sm font-medium">Personal Data</span>
+                                </div>
+                                <div className={`w-8 h-0.5 ${currentStep >= 2 ? 'bg-primary-600' : 'bg-gray-200'}`}></div>
+                                <div className={`flex items-center ${currentStep >= 2 ? 'text-primary-600' : 'text-gray-400'}`}>
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep >= 2 ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-500'
+                                        }`}>
+                                        2
+                                    </div>
+                                    <span className="ml-2 text-sm font-medium">Income Inputs</span>
+                                </div>
+                            </div>
+                        </div>
 
-                                {/* Step 1: Personal Information */}
-                                {currentStep === 1 && (
-                                    <div className="space-y-6">
-                                        <div className="text-center mb-6">
-                                            <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse-glow">
-                                                <i className="fas fa-user text-white text-2xl"></i>
-                                            </div>
-                                            <h3 className="text-2xl font-semibold text-gray-900 mb-2">Personal Information</h3>
-                                            <p className="text-gray-600">Tell us about yourself to get started</p>
+                        {/* Google Registration Option */}
+                        <div className="flex justify-center ">
+                            <div className="text-center mb-4">
+                                {/* <p className="text-gray-600 text-sm">Or continue with</p> */}
+                            </div>
+                            <SignUp
+                                appearance={{
+                                    elements: {
+                                        formButtonPrimary: 'hidden',
+                                        card: 'shadow-none border-0',
+                                        headerTitle: 'hidden',
+                                        headerSubtitle: 'hidden',
+                                        socialButtonsBlockButton: 'w-full mb-4 px-4 py-3 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 flex items-center justify-center text-gray-700 font-medium',
+                                        socialButtonsBlockButtonText: 'flex items-center text-sm font-medium',
+                                        socialButtonsProviderIcon__google: 'w-5 h-5 mr-3',
+                                        socialButtonsBlockButtonArrow: 'hidden',
+                                        formFieldInput: 'hidden',
+                                        formFieldLabel: 'hidden',
+                                        formFieldRow: 'hidden',
+                                        footerActionText: 'hidden',
+                                        footerActionLink: 'hidden'
+                                    }
+                                }}
+                                redirectUrl="/dashboard"
+                            />
+                        </div>
+
+                        
+
+                        {/* Custom Registration Form */}
+                        <form onSubmit={handleSubmit} className={`transition-all duration-300 ${isAnimating ? 'opacity-0 transform translate-x-4' : 'opacity-100 transform translate-x-0'}`}>
+                            {currentStep === 1 && (
+                                <div className="space-y-6">
+                                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Personal Information</h2>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="form-label">First Name *</label>
+                                            <input
+                                                type="text"
+                                                name="firstName"
+                                                value={formData.firstName}
+                                                onChange={handleChange}
+                                                className={`form-input ${errors.firstName ? 'border-red-500' : ''}`}
+                                                placeholder="Enter your first name"
+                                            />
+                                            {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div className="space-y-4">
-                                                <div>
-                                                    <label htmlFor="name" className="form-label">
-                                                        <i className="fas fa-user mr-2 text-primary-600"></i>
-                                                        Full Name *
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        id="name"
-                                                        name="name"
-                                                        value={formData.name}
-                                                        onChange={handleChange}
-                                                        className={`form-input ${errors.name ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}`}
-                                                        placeholder="Enter your full name"
-                                                    />
-                                                    {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
-                                                </div>
-
-                                                <div>
-                                                    <label htmlFor="age" className="form-label">
-                                                        <i className="fas fa-calendar mr-2 text-primary-600"></i>
-                                                        Age *
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        id="age"
-                                                        name="age"
-                                                        value={formData.age}
-                                                        onChange={handleChange}
-                                                        className={`form-input ${errors.age ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}`}
-                                                        placeholder="Enter your age"
-                                                        min="18"
-                                                        max="100"
-                                                    />
-                                                    {errors.age && <p className="text-red-500 text-sm mt-1">{errors.age}</p>}
-                                                </div>
-
-                                                <div>
-                                                    <label htmlFor="email" className="form-label">
-                                                        <i className="fas fa-envelope mr-2 text-primary-600"></i>
-                                                        Email Address *
-                                                    </label>
-                                                    <div className="flex gap-2 mb-8">
-                                                        <input
-                                                            type="email"
-                                                            id="email"
-                                                            name="email"
-                                                            value={formData.email}
-                                                            onChange={handleChange}
-                                                            className={`form-input flex-1 ${errors.email ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''} ${isEmailVerified ? 'border-green-500 bg-green-50' : ''}`}
-                                                            placeholder="Enter your email (verification required)"
-                                                            disabled={isVerifying}
-                                                        />
-                                                        <button
-                                                            type="button"
-                                                            onClick={handleEmailVerification}
-                                                            disabled={isVerifying || isEmailVerified || !formData.email.trim()}
-                                                            className={`px-4 py-3 rounded-lg font-medium transition-all duration-200 ${isEmailVerified
-                                                                ? 'bg-green-100 text-green-700 border border-green-300 cursor-not-allowed'
-                                                                : isVerifying
-                                                                    ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
-                                                                    : 'bg-primary-600 text-white hover:bg-primary-700'
-                                                                }`}
-                                                        >
-                                                            {isEmailVerified ? (
-                                                                <>
-                                                                    <i className="fas fa-check mr-2"></i>
-                                                                    Verified
-                                                                </>
-                                                            ) : isVerifying ? (
-                                                                <>
-                                                                    <i className="fas fa-spinner fa-spin mr-2"></i>
-                                                                    Sending...
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <i className="fas fa-paper-plane mr-2"></i>
-                                                                    Verify
-                                                                </>
-                                                            )}
-                                                        </button>
-                                                    </div>
-
-                                                    {isEmailVerified && (
-                                                        <div className="flex items-center mt-2 text-green-600 text-sm">
-                                                            <i className="fas fa-check-circle mr-2"></i>
-                                                            Email verified successfully!
-                                                        </div>
-                                                    )}
-
-                                                    {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-                                                </div>
-
-                                            </div>
-
-                                            <div className="space-y-4">
-                                                <div>
-                                                    <label htmlFor="location" className="form-label">
-                                                        <i className="fas fa-map-marker-alt mr-2 text-primary-600"></i>
-                                                        Location *
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        id="location"
-                                                        name="location"
-                                                        value={formData.location}
-                                                        onChange={handleChange}
-                                                        className={`form-input ${errors.location ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}`}
-                                                        placeholder="Enter your city, state"
-                                                    />
-                                                    {errors.location && <p className="text-red-500 text-sm mt-1">{errors.location}</p>}
-                                                </div>
-
-                                                <div>
-                                                    <label htmlFor="maritalStatus" className="form-label">
-                                                        <i className="fas fa-heart mr-2 text-primary-600"></i>
-                                                        Marital Status *
-                                                    </label>
-                                                    <select
-                                                        id="maritalStatus"
-                                                        name="maritalStatus"
-                                                        value={formData.maritalStatus}
-                                                        onChange={handleChange}
-                                                        className={`form-input ${errors.maritalStatus ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}`}
-                                                    >
-                                                        <option value="">Select marital status</option>
-                                                        <option value="single">Single</option>
-                                                        <option value="married">Married</option>
-                                                        <option value="divorced">Divorced</option>
-                                                        <option value="widowed">Widowed</option>
-                                                    </select>
-                                                    {errors.maritalStatus && <p className="text-red-500 text-sm mt-1">{errors.maritalStatus}</p>}
-                                                </div>
-
-                                                <div>
-                                                    <label htmlFor="dependents" className="form-label">
-                                                        <i className="fas fa-users mr-2 text-primary-600"></i>
-                                                        Number of Dependents *
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        id="dependents"
-                                                        name="dependents"
-                                                        value={formData.dependents}
-                                                        onChange={handleChange}
-                                                        className={`form-input ${errors.dependents ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}`}
-                                                        placeholder="Enter number of dependents"
-                                                        min="0"
-                                                    />
-                                                    {errors.dependents && <p className="text-red-500 text-sm mt-1">{errors.dependents}</p>}
-                                                </div>
-                                            </div>
+                                        <div>
+                                            <label className="form-label">Last Name *</label>
+                                            <input
+                                                type="text"
+                                                name="lastName"
+                                                value={formData.lastName}
+                                                onChange={handleChange}
+                                                className={`form-input ${errors.lastName ? 'border-red-500' : ''}`}
+                                                placeholder="Enter your last name"
+                                            />
+                                            {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>}
                                         </div>
                                     </div>
-                                )}
 
-                                {/* Step 2: Income & Security */}
-                                {currentStep === 2 && (
-                                    <div className="space-y-6">
-                                        <div className="text-center mb-6">
-                                            <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse-glow">
-                                                <i className="fas fa-wallet text-white text-2xl"></i>
-                                            </div>
-                                            <h3 className="text-2xl font-semibold text-gray-900 mb-2">Income & Security</h3>
-                                            <p className="text-gray-600">Financial details and account security</p>
-                                        </div>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div className="space-y-4">
-                                                <div>
-                                                    <label htmlFor="basicIncome" className="form-label">
-                                                        <i className="fas fa-rupee-sign mr-2 text-primary-600"></i>
-                                                        Annual Income (₹) *
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        id="basicIncome"
-                                                        name="basicIncome"
-                                                        value={formData.basicIncome}
-                                                        onChange={handleChange}
-                                                        className={`form-input ${errors.basicIncome ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}`}
-                                                        placeholder="Enter your annual income"
-                                                        min="0"
-                                                    />
-                                                    {errors.basicIncome && <p className="text-red-500 text-sm mt-1">{errors.basicIncome}</p>}
-                                                </div>
-
-                                                <div>
-                                                    <label htmlFor="additionalIncome" className="form-label">
-                                                        <i className="fas fa-plus-circle mr-2 text-primary-600"></i>
-                                                        Additional Income (₹)
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        id="additionalIncome"
-                                                        name="additionalIncome"
-                                                        value={formData.additionalIncome}
-                                                        onChange={handleChange}
-                                                        className={`form-input ${errors.additionalIncome ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}`}
-                                                        placeholder="Freelance, investments, etc."
-                                                        min="0"
-                                                    />
-                                                    {errors.additionalIncome && <p className="text-red-500 text-sm mt-1">{errors.additionalIncome}</p>}
-                                                </div>
-
-                                                <div>
-                                                    <label htmlFor="monthlyExpenses" className="form-label">
-                                                        <i className="fas fa-chart-pie mr-2 text-primary-600"></i>
-                                                        Monthly Expenses (₹) *
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        id="monthlyExpenses"
-                                                        name="monthlyExpenses"
-                                                        value={formData.monthlyExpenses}
-                                                        onChange={handleChange}
-                                                        className={`form-input ${errors.monthlyExpenses ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}`}
-                                                        placeholder="Your monthly expenses"
-                                                        min="0"
-                                                    />
-                                                    {errors.monthlyExpenses && <p className="text-red-500 text-sm mt-1">{errors.monthlyExpenses}</p>}
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-4">
-                                                <div>
-                                                    <label htmlFor="password" className="form-label">
-                                                        <i className="fas fa-lock mr-2 text-primary-600"></i>
-                                                        Password *
-                                                    </label>
-                                                    <input
-                                                        type="password"
-                                                        id="password"
-                                                        name="password"
-                                                        value={formData.password}
-                                                        onChange={handleChange}
-                                                        className={`form-input ${errors.password ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}`}
-                                                        placeholder="Create a strong password"
-                                                    />
-                                                    {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
-                                                </div>
-
-                                                <div>
-                                                    <label htmlFor="confirmPassword" className="form-label">
-                                                        <i className="fas fa-lock mr-2 text-primary-600"></i>
-                                                        Confirm Password *
-                                                    </label>
-                                                    <input
-                                                        type="password"
-                                                        id="confirmPassword"
-                                                        name="confirmPassword"
-                                                        value={formData.confirmPassword}
-                                                        onChange={handleChange}
-                                                        className={`form-input ${errors.confirmPassword ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}`}
-                                                        placeholder="Confirm your password"
-                                                    />
-                                                    {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
-                                                </div>
-
-                                                <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
-                                                    <div className="flex items-start">
-                                                        <i className="fas fa-info-circle text-primary-600 mr-3 mt-1"></i>
-                                                        <div>
-                                                            <h4 className="font-medium text-primary-800 mb-1">Password Requirements</h4>
-                                                            <ul className="text-sm text-primary-700 space-y-1">
-                                                                <li>• At least 8 characters long</li>
-                                                                <li>• Include uppercase and lowercase letters</li>
-                                                                <li>• Include numbers and special characters</li>
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Navigation Buttons */}
-                                <div className="flex justify-between pt-6 border-t border-gray-200">
                                     <div>
-                                        {currentStep > 1 && (
+                                        <label className="form-label">Email Address *</label>
+                                        <div className="flex space-x-2">
+                                            <input
+                                                type="email"
+                                                name="email"
+                                                value={formData.email}
+                                                onChange={handleChange}
+                                                className={`form-input flex-1 ${errors.email ? 'border-red-500' : ''}`}
+                                                placeholder="Enter your email address"
+                                            />
                                             <button
                                                 type="button"
-                                                onClick={prevStep}
-                                                className="btn btn-outline"
+                                                onClick={handleEmailVerification}
+                                                disabled={isVerifying || isEmailVerified || !formData.email}
+                                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isEmailVerified
+                                                    ? 'bg-green-100 text-green-700 border border-green-300'
+                                                    : isVerifying
+                                                        ? 'bg-gray-100 text-gray-500 border border-gray-300 cursor-not-allowed'
+                                                        : 'bg-primary-600 text-white hover:bg-primary-700'
+                                                    }`}
                                             >
-                                                <i className="fas fa-arrow-left mr-2"></i>
-                                                Previous
+                                                {isVerifying ? 'Sending...' : isEmailVerified ? 'Verified ✓' : 'Verify'}
                                             </button>
-                                        )}
+                                        </div>
+                                        {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
                                     </div>
 
-                                    <div className="flex space-x-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="form-label">Age *</label>
+                                            <input
+                                                type="number"
+                                                name="age"
+                                                value={formData.age}
+                                                onChange={handleChange}
+                                                className={`form-input ${errors.age ? 'border-red-500' : ''}`}
+                                                placeholder="Enter your age"
+                                                min="18"
+                                                max="100"
+                                            />
+                                            {errors.age && <p className="text-red-500 text-sm mt-1">{errors.age}</p>}
+                                        </div>
+
+                                        <div>
+                                            <label className="form-label">Location *</label>
+                                            <input
+                                                type="text"
+                                                name="location"
+                                                value={formData.location}
+                                                onChange={handleChange}
+                                                className={`form-input ${errors.location ? 'border-red-500' : ''}`}
+                                                placeholder="City, Country"
+                                            />
+                                            {errors.location && <p className="text-red-500 text-sm mt-1">{errors.location}</p>}
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="form-label">Marital Status *</label>
+                                            <select
+                                                name="maritalStatus"
+                                                value={formData.maritalStatus}
+                                                onChange={handleChange}
+                                                className={`form-input ${errors.maritalStatus ? 'border-red-500' : ''}`}
+                                            >
+                                                <option value="">Select status</option>
+                                                <option value="single">Single</option>
+                                                <option value="married">Married</option>
+                                                <option value="divorced">Divorced</option>
+                                                <option value="widowed">Widowed</option>
+                                            </select>
+                                            {errors.maritalStatus && <p className="text-red-500 text-sm mt-1">{errors.maritalStatus}</p>}
+                                        </div>
+
+                                        <div>
+                                            <label className="form-label">Number of Dependents *</label>
+                                            <input
+                                                type="number"
+                                                name="dependents"
+                                                value={formData.dependents}
+                                                onChange={handleChange}
+                                                className={`form-input ${errors.dependents ? 'border-red-500' : ''}`}
+                                                placeholder="0"
+                                                min="0"
+                                            />
+                                            {errors.dependents && <p className="text-red-500 text-sm mt-1">{errors.dependents}</p>}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {currentStep === 2 && (
+                                <div className="space-y-6">
+                                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Income & Security</h2>
+
+                                    <div>
+                                        <label className="form-label">Monthly Income *</label>
+                                        <input
+                                            type="number"
+                                            name="monthlyIncome"
+                                            value={formData.monthlyIncome}
+                                            onChange={handleChange}
+                                            className={`form-input ${errors.monthlyIncome ? 'border-red-500' : ''}`}
+                                            placeholder="Enter your monthly income"
+                                            min="0"
+                                        />
+                                        {errors.monthlyIncome && <p className="text-red-500 text-sm mt-1">{errors.monthlyIncome}</p>}
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="form-label">Password *</label>
+                                            <input
+                                                type="password"
+                                                name="password"
+                                                value={formData.password}
+                                                onChange={handleChange}
+                                                className={`form-input ${errors.password ? 'border-red-500' : ''}`}
+                                                placeholder="Create a strong password"
+                                            />
+                                            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+                                        </div>
+
+                                        <div>
+                                            <label className="form-label">Confirm Password *</label>
+                                            <input
+                                                type="password"
+                                                name="confirmPassword"
+                                                value={formData.confirmPassword}
+                                                onChange={handleChange}
+                                                className={`form-input ${errors.confirmPassword ? 'border-red-500' : ''}`}
+                                                placeholder="Confirm your password"
+                                            />
+                                            {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Form Actions */}
+                            <div className="flex justify-between mt-8">
+                                <button
+                                    type="button"
+                                    onClick={prevStep}
+                                    disabled={currentStep === 1}
+                                    className={`px-6 py-2 rounded-lg font-medium transition-colors ${currentStep === 1
+                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                        }`}
+                                >
+                                    Previous
+                                </button>
+
+                                <div className="flex space-x-3">
+                                    <button
+                                        type="button"
+                                        onClick={handleReset}
+                                        className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                                    >
+                                        Reset
+                                    </button>
+
+                                    {currentStep < 2 ? (
                                         <button
                                             type="button"
-                                            onClick={handleReset}
-                                            className="btn btn-outline"
+                                            onClick={nextStep}
+                                            disabled={!isEmailVerified}
+                                            className={`px-6 py-2 rounded-lg font-medium transition-colors ${!isEmailVerified
+                                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                : 'bg-primary-600 text-white hover:bg-primary-700'
+                                                }`}
                                         >
-                                            <i className="fas fa-undo mr-2"></i>
-                                            Reset
+                                            {!isEmailVerified ? 'Verify Email First' : 'Next Step'}
                                         </button>
-
-                                        {currentStep < 2 ? (
-                                            <button
-                                                type="button"
-                                                onClick={nextStep}
-                                                disabled={!isEmailVerified}
-                                                className={`btn ${isEmailVerified ? 'btn-primary' : 'btn-outline opacity-50 cursor-not-allowed'}`}
-                                            >
-                                                {isEmailVerified ? (
-                                                    <>
-                                                        Next Step
-                                                        <i className="fas fa-arrow-right ml-2"></i>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <i className="fas fa-envelope mr-2"></i>
-                                                        Verify Email First
-                                                    </>
-                                                )}
-                                            </button>
-                                        ) : (
-                                            <button
-                                                type="submit"
-                                                className="btn btn-primary"
-                                            >
-                                                <i className="fas fa-user-plus mr-2"></i>
-                                                Create Account
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Login Link */}
-                                <div className="text-center pt-4">
-                                    <p className="text-gray-600">
-                                        Already have an account?{' '}
-                                        <Link to="/login" className="text-primary-600 hover:text-primary-700 font-medium">
-                                            Sign in here
-                                        </Link>
-                                    </p>
+                                    ) : (
+                                        <button
+                                            type="submit"
+                                            className="btn btn-primary"
+                                        >
+                                            Create Account
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </form>
+                    </div>
+                </div>
+
+                {/* Additional Features */}
+                <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="text-center">
+                        <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Secure Registration</h3>
+                        <p className="text-gray-600 text-sm">Your data is protected with enterprise-grade security</p>
+                    </div>
+                    <div className="text-center">
+                        <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Quick Setup</h3>
+                        <p className="text-gray-600 text-sm">Get started with retirement planning in minutes</p>
+                    </div>
+                    <div className="text-center">
+                        <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">AI-Powered</h3>
+                        <p className="text-gray-600 text-sm">Advanced algorithms for personalized planning</p>
                     </div>
                 </div>
             </div>

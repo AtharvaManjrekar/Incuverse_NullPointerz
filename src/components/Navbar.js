@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useUser, useClerk } from '@clerk/clerk-react';
 
 const Navbar = () => {
+    const { user, isSignedIn } = useUser();
+    const { signOut } = useClerk();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const location = useLocation();
 
@@ -27,24 +30,54 @@ const Navbar = () => {
                         >
                             Home
                         </Link>
-                        <Link
-                            to="/registration"
-                            className={`nav-link ${isActive('/registration') ? 'active' : ''}`}
-                        >
-                            Registration
-                        </Link>
-                        <Link
-                            to="/login"
-                            className={`nav-link ${isActive('/login') ? 'active' : ''}`}
-                        >
-                            Login
-                        </Link>
-                        <Link
-                            to="/dashboard"
-                            className={`nav-link ${isActive('/dashboard') ? 'active' : ''}`}
-                        >
-                            Dashboard
-                        </Link>
+                        {isSignedIn ? (
+                            <>
+                                <Link
+                                    to="/dashboard"
+                                    className={`nav-link ${isActive('/dashboard') ? 'active' : ''}`}
+                                >
+                                    Dashboard
+                                </Link>
+                                <Link
+                                    to="/planning"
+                                    className={`nav-link ${isActive('/planning') ? 'active' : ''}`}
+                                >
+                                    New Plan
+                                </Link>
+                                <div className="flex items-center space-x-4">
+                                    <div className="flex items-center space-x-2">
+                                        <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                                            <i className="fas fa-user text-primary-600 text-sm"></i>
+                                        </div>
+                                        <span className="text-sm font-medium text-gray-700">
+                                            {user?.firstName || 'User'}
+                                        </span>
+                                    </div>
+                                    <button
+                                        onClick={() => signOut()}
+                                        className="text-gray-600 hover:text-primary-600 transition-colors duration-200 font-medium"
+                                    >
+                                        <i className="fas fa-sign-out-alt mr-1"></i>
+                                        Sign Out
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <Link
+                                    to="/registration"
+                                    className={`nav-link ${isActive('/registration') ? 'active' : ''}`}
+                                >
+                                    Registration
+                                </Link>
+                                <Link
+                                    to="/login"
+                                    className={`nav-link ${isActive('/login') ? 'active' : ''}`}
+                                >
+                                    Login
+                                </Link>
+                            </>
+                        )}
                     </div>
 
                     {/* Mobile menu button */}
@@ -70,30 +103,65 @@ const Navbar = () => {
                             >
                                 Home
                             </Link>
-                            <Link
-                                to="/registration"
-                                className={`block px-3 py-2 rounded-md text-base font-medium ${isActive('/registration') ? 'text-primary-600 bg-primary-50' : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
-                                    }`}
-                                onClick={() => setIsMenuOpen(false)}
-                            >
-                                Registration
-                            </Link>
-                            <Link
-                                to="/login"
-                                className={`block px-3 py-2 rounded-md text-base font-medium ${isActive('/login') ? 'text-primary-600 bg-primary-50' : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
-                                    }`}
-                                onClick={() => setIsMenuOpen(false)}
-                            >
-                                Login
-                            </Link>
-                            <Link
-                                to="/dashboard"
-                                className={`block px-3 py-2 rounded-md text-base font-medium ${isActive('/dashboard') ? 'text-primary-600 bg-primary-50' : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
-                                    }`}
-                                onClick={() => setIsMenuOpen(false)}
-                            >
-                                Dashboard
-                            </Link>
+                            {isSignedIn ? (
+                                <>
+                                    <Link
+                                        to="/dashboard"
+                                        className={`block px-3 py-2 rounded-md text-base font-medium ${isActive('/dashboard') ? 'text-primary-600 bg-primary-50' : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
+                                            }`}
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        Dashboard
+                                    </Link>
+                                    <Link
+                                        to="/planning"
+                                        className={`block px-3 py-2 rounded-md text-base font-medium ${isActive('/planning') ? 'text-primary-600 bg-primary-50' : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
+                                            }`}
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        New Plan
+                                    </Link>
+                                    <div className="border-t border-gray-200 pt-2 mt-2">
+                                        <div className="flex items-center px-3 py-2">
+                                            <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center mr-3">
+                                                <i className="fas fa-user text-primary-600 text-sm"></i>
+                                            </div>
+                                            <span className="text-sm font-medium text-gray-700">
+                                                {user?.firstName || 'User'}
+                                            </span>
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                signOut();
+                                                setIsMenuOpen(false);
+                                            }}
+                                            className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-50"
+                                        >
+                                            <i className="fas fa-sign-out-alt mr-2"></i>
+                                            Sign Out
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <Link
+                                        to="/registration"
+                                        className={`block px-3 py-2 rounded-md text-base font-medium ${isActive('/registration') ? 'text-primary-600 bg-primary-50' : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
+                                            }`}
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        Registration
+                                    </Link>
+                                    <Link
+                                        to="/login"
+                                        className={`block px-3 py-2 rounded-md text-base font-medium ${isActive('/login') ? 'text-primary-600 bg-primary-50' : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
+                                            }`}
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        Login
+                                    </Link>
+                                </>
+                            )}
                         </div>
                     </div>
                 )}

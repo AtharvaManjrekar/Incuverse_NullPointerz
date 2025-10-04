@@ -32,6 +32,7 @@ A modern, responsive React application for AI-powered retirement planning with a
 
 - Node.js (v14 or higher)
 - npm or yarn package manager
+- Clerk account (for authentication)
 
 ### Installation
 
@@ -40,12 +41,25 @@ A modern, responsive React application for AI-powered retirement planning with a
 npm install
 ```
 
-2. Start the development server:
+2. Set up Clerk Authentication:
+   - Sign up at [https://clerk.com](https://clerk.com)
+   - Create a new application
+   - Copy your publishable key from the dashboard
+   - **Enable Google OAuth**:
+     - Go to "User & Authentication" → "Social Connections"
+     - Enable Google provider
+     - Add your Google OAuth credentials
+   - Create a `.env` file in the root directory with:
+   ```
+   REACT_APP_CLERK_PUBLISHABLE_KEY=pk_test_your_clerk_publishable_key_here
+   ```
+
+3. Start the development server:
 ```bash
 npm start
 ```
 
-3. Open [http://localhost:3000](http://localhost:3000) to view the application
+4. Open [http://localhost:3000](http://localhost:3000) to view the application
 
 ### Build for Production
 

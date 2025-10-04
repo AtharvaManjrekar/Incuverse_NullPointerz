@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const Dashboard = () => {
     const [activeTab, setActiveTab] = useState('overview');
-    const [userName, setUserName] = useState('John Doe');
-    const [userEmail, setUserEmail] = useState('john.doe@example.com');
+    const { user, userData } = useAuth();
+
+    // Get user data from context
+    const userName = userData?.name || userData?.firstName || 'User';
+    const userEmail = userData?.email || user?.email || 'user@example.com';
 
     // Mock data for user's retirement planning history
     const planningHistory = [

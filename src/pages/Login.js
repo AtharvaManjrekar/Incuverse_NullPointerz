@@ -1,146 +1,166 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "../firebaseConfig";
+import { useAuth } from "../contexts/AuthContext";
 
 const Login = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { setUser, setUserData } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Clear error when user starts typing
     if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
-    }
-
-    if (!formData.password.trim()) {
-      newErrors.password = 'Password is required';
-    }
-
+    if (!formData.email.trim()) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(formData.email))
+      newErrors.email = "Email is invalid";
+    if (!formData.password.trim()) newErrors.password = "Password is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      setIsLoading(true);
+    if (!validateForm()) return;
 
-      // Simulate login process
-      setTimeout(() => {
-        console.log('Login attempt:', formData);
+    setIsLoading(true);
+    setErrors({});
+
+    try {
+      const email = formData.email.trim();
+      const password = formData.password.trim();
+
+      const q = query(collection(db, "users"), where("email", "==", email));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        setErrors({ email: "No account found with this email." });
         setIsLoading(false);
-        // Simulate successful login
-        alert('Login successful! Welcome to AI Retirement Planner');
-        navigate('/dashboard');
-      }, 1500);
+        return;
+      }
+
+      let isValid = false;
+      let userData = null;
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.password === password) {
+          isValid = true;
+          userData = { id: doc.id, ...data };
+        }
+      });
+
+      if (isValid) {
+        console.log('✅ Login successful:', userData);
+
+        // Set user data in AuthContext
+        setUser({ email: userData.email, uid: userData.id });
+        setUserData(userData);
+
+        alert(`✅ Welcome back, ${userData.firstName || userData.email}!`);
+        navigate("/dashboard");
+      } else {
+        setErrors({ password: "Incorrect password." });
+      }
+    } catch (error) {
+      console.error("Login Error:", error);
+      setErrors({ email: "Something went wrong. Please try again." });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 min-h-screen flex flex-col justify-center">
-      <div className="card w-full p-6 shadow-lg border rounded-lg">
+    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 px-4">
+      <div className="w-full max-w-md bg-white shadow-xl rounded-2xl p-8">
+        {/* Header */}
         <div className="text-center mb-6">
-          <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <i className="fas fa-sign-in-alt text-primary-600 text-2xl"></i>
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i className="fas fa-sign-in-alt text-blue-600 text-2xl"></i>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-          <p className="text-gray-600">Sign in to your AI Retirement Planner account</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Welcome Back
+          </h1>
+          <p className="text-gray-600 text-sm">
+            Sign in to your AI Retirement Planner account
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="form-label">Email Address</label>
+            <label className="block text-gray-700 font-medium mb-1">
+              Email Address
+            </label>
             <input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className={`form-input ${errors.email ? 'border-red-500' : ''}`}
-              placeholder="Enter your email address"
+              className={`w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 ${errors.email ? "border-red-500" : "border-gray-300"
+                }`}
+              placeholder="Enter your email"
             />
-            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+            )}
           </div>
 
           <div>
-            <label className="form-label">Password</label>
+            <label className="block text-gray-700 font-medium mb-1">
+              Password
+            </label>
             <input
               type="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className={`form-input ${errors.password ? 'border-red-500' : ''}`}
+              className={`w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 ${errors.password ? "border-red-500" : "border-gray-300"
+                }`}
               placeholder="Enter your password"
             />
-            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+            )}
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="btn btn-primary w-full"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-lg transition duration-300"
           >
             {isLoading ? (
               <>
-                <i className="fas fa-spinner fa-spin mr-2"></i>
-                Signing In...
+                <i className="fas fa-spinner fa-spin mr-2"></i> Signing In...
               </>
             ) : (
               <>
-                <i className="fas fa-sign-in-alt mr-2"></i>
-                Sign In
+                <i className="fas fa-sign-in-alt mr-2"></i> Sign In
               </>
             )}
           </button>
         </form>
 
-        {/* Features */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="card p-4 text-center border rounded-lg">
-            <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-              <i className="fas fa-shield-alt text-primary-600"></i>
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-1">Secure Login</h3>
-            <p className="text-sm text-gray-600">Bank-level encryption</p>
-          </div>
-
-          <div className="card p-4 text-center border rounded-lg">
-            <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-              <i className="fas fa-mobile-alt text-primary-600"></i>
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-1">Mobile Access</h3>
-            <p className="text-sm text-gray-600">Access anywhere</p>
-          </div>
-
-          <div className="card p-4 text-center border rounded-lg">
-            <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-              <i className="fas fa-clock text-primary-600"></i>
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-1">24/7 Support</h3>
-            <p className="text-sm text-gray-600">Always available</p>
-          </div>
+        {/* Footer */}
+        <div className="mt-6 text-center text-gray-500 text-sm">
+          Don't have an account?{" "}
+          <Link
+            to="/registration"
+            className="text-blue-600 hover:underline font-medium"
+          >
+            Register
+          </Link>
         </div>
       </div>
     </div>

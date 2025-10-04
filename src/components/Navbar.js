@@ -1,18 +1,26 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebaseConfig';
 
 const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [userName, setUserName] = useState('User');
+    const { user, userData, setUser, setUserData } = useAuth();
     const location = useLocation();
+    const navigate = useNavigate();
 
     const isActive = (path) => location.pathname === path;
 
-    const handleSignOut = () => {
-        setIsLoggedIn(false);
-        setUserName('User');
-        // In a real app, you would clear tokens, etc.
+    const handleSignOut = async () => {
+        try {
+            await signOut(auth);
+            setUser(null);
+            setUserData(null);
+            navigate('/');
+        } catch (error) {
+            console.error('Error signing out:', error);
+        }
     };
 
     return (
@@ -35,7 +43,7 @@ const Navbar = () => {
                         >
                             Home
                         </Link>
-                        {isLoggedIn ? (
+                        {user ? (
                             <>
                                 <Link
                                     to="/dashboard"
@@ -55,7 +63,7 @@ const Navbar = () => {
                                             <i className="fas fa-user text-primary-600 text-sm"></i>
                                         </div>
                                         <span className="text-sm font-medium text-gray-700">
-                                            {userName}
+                                            {userData?.firstName || user?.displayName || user?.email || 'User'}
                                         </span>
                                     </div>
                                     <button
@@ -108,7 +116,7 @@ const Navbar = () => {
                             >
                                 Home
                             </Link>
-                            {isLoggedIn ? (
+                            {user ? (
                                 <>
                                     <Link
                                         to="/dashboard"
@@ -132,7 +140,7 @@ const Navbar = () => {
                                                 <i className="fas fa-user text-primary-600 text-sm"></i>
                                             </div>
                                             <span className="text-sm font-medium text-gray-700">
-                                                {userName}
+                                                {userData?.firstName || user?.displayName || user?.email || 'User'}
                                             </span>
                                         </div>
                                         <button

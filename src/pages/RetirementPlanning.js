@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const RetirementPlanning = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     monthlyIncome: '',
     fixedExpenses: '',
@@ -75,14 +77,35 @@ const RetirementPlanning = () => {
     e.preventDefault();
     if (validateForm()) {
       setIsCalculating(true);
-      // Simulate calculation
-      setTimeout(() => {
-        console.log('Form submitted:', formData);
+
+      try {
+        // Store form data in localStorage for the Results page
+        const userData = {
+          age: 30, // Default age, should come from user profile
+          monthlyIncome: parseFloat(formData.monthlyIncome),
+          monthlyExpenses: parseFloat(formData.fixedExpenses) + parseFloat(formData.variableExpenses),
+          retirementAge: parseInt(formData.retirementAge),
+          currentSavings: parseFloat(formData.currentSavings.fd) + parseFloat(formData.currentSavings.sip) + parseFloat(formData.currentSavings.mutualFunds) + parseFloat(formData.currentSavings.other),
+          monthlySavings: parseFloat(formData.monthlyIncome) - (parseFloat(formData.fixedExpenses) + parseFloat(formData.variableExpenses)),
+          retirementGoal: parseFloat(formData.desiredCorpus),
+          expectedInflation: 6.0,
+          expectedReturns: 12.0,
+          employerMatch: 0,
+          socialSecurity: 0,
+          otherIncome: 0
+        };
+
+        localStorage.setItem('userData', JSON.stringify(userData));
+        console.log('User data stored:', userData);
+
+        // Navigate to results page
+        navigate('/results');
+      } catch (error) {
+        console.error('Error storing data:', error);
+        alert('Error processing your data. Please try again.');
+      } finally {
         setIsCalculating(false);
-        // In a real app, you would navigate to results
-        // navigate('/results');
-        alert('Calculation complete! Redirecting to results...');
-      }, 2000);
+      }
     }
   };
 
@@ -143,7 +166,7 @@ const RetirementPlanning = () => {
                       />
                       {errors.monthlyIncome && <p className="text-red-500 text-sm mt-1">{errors.monthlyIncome}</p>}
                     </div>
-                    
+
                     <div>
                       <label htmlFor="retirementAge" className="form-label">
                         Desired Retirement Age *
@@ -162,7 +185,7 @@ const RetirementPlanning = () => {
                       {errors.retirementAge && <p className="text-red-500 text-sm mt-1">{errors.retirementAge}</p>}
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="fixedExpenses" className="form-label">
@@ -180,7 +203,7 @@ const RetirementPlanning = () => {
                       />
                       {errors.fixedExpenses && <p className="text-red-500 text-sm mt-1">{errors.fixedExpenses}</p>}
                     </div>
-                    
+
                     <div>
                       <label htmlFor="variableExpenses" className="form-label">
                         Variable Expenses (₹) *
@@ -226,7 +249,7 @@ const RetirementPlanning = () => {
                         min="0"
                       />
                     </div>
-                    
+
                     <div>
                       <label htmlFor="currentSavings.sip" className="form-label">
                         SIP Investments (₹)
@@ -243,7 +266,7 @@ const RetirementPlanning = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="currentSavings.mutualFunds" className="form-label">
@@ -260,7 +283,7 @@ const RetirementPlanning = () => {
                         min="0"
                       />
                     </div>
-                    
+
                     <div>
                       <label htmlFor="currentSavings.other" className="form-label">
                         Other Investments (₹)
@@ -306,7 +329,7 @@ const RetirementPlanning = () => {
                       />
                       {errors.currentDebt && <p className="text-red-500 text-sm mt-1">{errors.currentDebt}</p>}
                     </div>
-                    
+
                     <div>
                       <label htmlFor="desiredCorpus" className="form-label">
                         Desired Retirement Corpus (₹) *
@@ -415,7 +438,7 @@ const RetirementPlanning = () => {
                 </div>
                 <div className="mt-4">
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-primary-600 h-2 rounded-full" style={{width: '100%'}}></div>
+                    <div className="bg-primary-600 h-2 rounded-full" style={{ width: '100%' }}></div>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">Form completion: 100%</p>
                 </div>

@@ -1,10 +1,93 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import RetirementAPI from '../services/api';
 
 const Results = () => {
     const [activeTab, setActiveTab] = useState('overview');
+    const [analysisData, setAnalysisData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // Mock data for demonstration
+    // Get user data from localStorage or context
+    const getUserData = () => {
+        const userData = localStorage.getItem('userData');
+        if (userData) {
+            return JSON.parse(userData);
+        }
+        return null;
+    };
+
+    useEffect(() => {
+        const fetchAnalysis = async () => {
+            try {
+                setLoading(true);
+                const userData = getUserData();
+
+                if (!userData) {
+                    setError('No user data found. Please complete the planning form first.');
+                    return;
+                }
+
+                // Call the backend API
+                try {
+                    const result = await RetirementAPI.analyzeRetirement(userData);
+                    setAnalysisData(result);
+                } catch (apiError) {
+                    console.error('Backend API failed:', apiError);
+                    // Use fallback mock data
+                    const fallbackData = {
+                        success: true,
+                        projection: {
+                            current_age: userData.age || 30,
+                            retirement_age: userData.retirementAge || 65,
+                            years_to_retirement: (userData.retirementAge || 65) - (userData.age || 30),
+                            current_savings: userData.currentSavings || 0,
+                            monthly_savings: userData.monthlySavings || 0,
+                            annual_savings: (userData.monthlySavings || 0) * 12,
+                            expected_returns: userData.expectedReturns || 6.0,
+                            projected_corpus: (userData.currentSavings || 0) * 1.5,
+                            retirement_goal: userData.retirementGoal || 1000000,
+                            readiness_percentage: 75.0,
+                            shortfall: 250000,
+                            surplus: 0
+                        },
+                        analysis: {
+                            summary: "Your retirement readiness is 75.0%",
+                            readiness_score: 75.0,
+                            corpus: (userData.currentSavings || 0) * 1.5,
+                            confidence_level: "Medium",
+                            key_insights: ["Basic analysis completed", "Consider increasing savings"],
+                            risk_factors: ["Market volatility", "Inflation risk"]
+                        },
+                        strategies: [
+                            {
+                                title: "Increase Monthly Savings",
+                                description: "Consider increasing monthly savings",
+                                impact: "High",
+                                timeframe: "Immediate",
+                                difficulty: "Medium",
+                                expected_benefit: "20% increase in retirement corpus"
+                            }
+                        ],
+                        overall_priority: "High",
+                        implementation_order: ["Increase Monthly Savings"],
+                        risk_assessment: "Moderate",
+                        ai_enabled: false
+                    };
+                    setAnalysisData(fallbackData);
+                }
+            } catch (err) {
+                console.error('Analysis failed:', err);
+                setError('Failed to analyze retirement plan. Please try again.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchAnalysis();
+    }, []);
+
+    // Mock data for demonstration (fallback)
     const retirementData = {
         currentAge: 30,
         retirementAge: 60,
@@ -61,8 +144,8 @@ const Results = () => {
         <button
             onClick={() => onClick(id)}
             className={`flex items-center px-4 py-2 rounded-lg font-medium transition-colors ${isActive
-                    ? 'bg-primary-600 text-white'
-                    : 'text-gray-600 hover:text-primary-600 hover:bg-primary-50'
+                ? 'bg-primary-600 text-white'
+                : 'text-gray-600 hover:text-primary-600 hover:bg-primary-50'
                 }`}
         >
             <i className={`fas ${icon} mr-2`}></i>
@@ -101,6 +184,37 @@ const Results = () => {
             </div>
         </div>
     );
+
+    // Loading state
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-600 mx-auto mb-4"></div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Analyzing Your Retirement Plan</h2>
+                    <p className="text-gray-600">Please wait while we process your data...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i className="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Analysis Failed</h2>
+                    <p className="text-gray-600 mb-4">{error}</p>
+                    <Link to="/planning" className="btn-primary">
+                        Try Again
+                    </Link>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 py-8">
